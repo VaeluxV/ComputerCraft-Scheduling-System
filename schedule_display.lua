@@ -30,6 +30,12 @@ local delayed_color = colors.red
 local title_color = colors.black
 local title_bg_color = colors.lightGray
 
+-- Function to clear and reset the monitor
+local function clear_monitor()
+    monitor.clear()
+    monitor.setCursorPos(1, 1)
+end
+
 -- Function to draw a title in bold and centered
 local function draw_title()
     local monitor_width, _ = monitor.getSize()
@@ -106,15 +112,18 @@ local function request_schedule()
     print("Requesting schedule...") -- DEBUG: Print to verify request is sent
     modem.transmit(channel, channel, "request_schedule") -- Request schedule from server
 
-    -- Wait for a modem message event with a timeout
-    local event, side, channel_received, reply_channel, message, distance = os.pullEventTimeout("modem_message", 2)
+    -- Wait for a modem message event
+    local event, side, channel_received, reply_channel, message, distance = os.pullEvent("modem_message")
 
-    -- If we received a message within 2 seconds
-    if event == "modem_message" and channel_received == channel then
+    -- DEBUG: Print to verify message received
+    print("Message received on channel: " .. tostring(channel_received))
+
+    -- Check if the received message is on the correct channel
+    if channel_received == channel then
         print("Schedule received from server.") -- DEBUG: Print to verify
         return message
     else
-        print("No response from server.") -- DEBUG: Show failure
+        print("Received message on wrong channel.") -- DEBUG: Print for wrong channel
         return nil
     end
 end
@@ -127,11 +136,7 @@ while true do
     if schedule then
         display_schedule(schedule)
     else
-        -- Display a fallback message when no schedule is available
-        monitor.clear()
-        monitor.setCursorPos(1, 1)
-        monitor.setTextColor(colors.red)
-        monitor.write("Unable to retrieve schedule.")
+        print("Failed to retrieve schedule. Retrying in 5 seconds...") -- DEBUG: Show failure
     end
 
     sleep(5) -- Refresh every 5 seconds for testing (can be adjusted)
