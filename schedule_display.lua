@@ -4,6 +4,7 @@
 local modem = peripheral.find("modem") -- Find attached ender modem
 local monitor = peripheral.find("monitor") -- Find attached advanced monitor
 local channel = 5 -- Communication channel
+modem.open(5) -- Prevent issues by opening channel 5 on the modem
 
 -- Check if the modem and monitor are found
 if not modem then
